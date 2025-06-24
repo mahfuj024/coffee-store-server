@@ -1,0 +1,61 @@
+const express = require('express')
+const app = express()
+const port = process.env.PORT || 4000
+const cors = require('cors')
+const { MongoClient, ServerApiVersion } = require('mongodb');
+require('dotenv').config()
+
+app.use(cors())
+app.use(express.json())
+
+
+const uri = `mongodb+srv://${process.env.COFFEE_USER}:${process.env.COFFEE_PASS}@cluster0.ft0um.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+
+const client = new MongoClient(uri, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
+
+async function run() {
+    try {
+        await client.connect();
+
+        const database = client.db("coffeedb");
+        const coffeeCollection = database.collection("coffees");
+
+        app.get("/coffees", async (req, res) => {
+            const cursor = coffeeCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+        app.post("/coffees", async (req, res) => {
+            const coffee = req.body
+            const result = await coffeeCollection.insertOne(coffee)
+            res.send(result)
+            console.log("new cofee from client site :", coffee)
+        })
+
+        console.log("express server connect in mongodb")
+    } finally {
+
+
+    }
+}
+run().catch(console.dir);
+
+
+
+
+
+app.get("/", (req, res) => {
+    res.send("hello world")
+})
+
+app.listen(port, () => {
+    console.log(`express server running port :`, port)
+})

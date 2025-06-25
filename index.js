@@ -26,6 +26,7 @@ async function run() {
 
         const database = client.db("coffeedb");
         const coffeeCollection = database.collection("coffees");
+        const usersCollection = database.collection("users");
 
         app.get("/coffees", async (req, res) => {
             const cursor = coffeeCollection.find()
@@ -75,6 +76,30 @@ async function run() {
             res.send(result)
             console.log("delete this id :", id)
         })
+
+
+        // users api
+        app.get("/users", async (req, res) => {
+            const cursor = usersCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+        app.post("/users", async (req, res) => {
+            const user = req.body
+            const result = await usersCollection.insertOne(user)
+            res.send(result)
+            console.log("user from client site :", user)
+        })
+
+        app.delete("/users/:id", async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await usersCollection.deleteOne(query)
+            res.send(result)
+            console.log("delete this id :", id)
+        })
+
 
         console.log("express server connect in mongodb")
     } finally {
